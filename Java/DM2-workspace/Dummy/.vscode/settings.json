@@ -1,0 +1,21 @@
+{
+    "files.autoSave": "afterDelay",
+    "java.inlayHints.parameterNames.enabled": "none",
+    "java.project.outputPath": "bin",
+    "java.project.referencedLibraries": [
+        "../lib/**/*.jar",
+        "lib/**/*.jar"
+    ],
+    "java.project.sourcePaths": [
+        "src", 
+        "grader"
+    ],
+    "java.test.config": [
+        {
+            "name": "local",
+            "workingDirectory": "${workspaceFolder}"
+        }
+    ],
+    "redhat.telemetry.enabled": false,
+    "terminal.integrated.defaultProfile.windows": "Git Bash",
+}

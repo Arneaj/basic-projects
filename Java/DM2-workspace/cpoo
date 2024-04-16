@@ -1,0 +1,221 @@
+#!/usr/bin/env bash
+
+# Main tools for the TCS3-IN CPOO course.
+# Prerequisite: installation of Java, VS Code, Git and Bash (via Git Bash on
+# Windows).
+#
+# Author: tanguy.perennou@isae-supaero.fr, 2023-06
+
+usage() {
+    program=./cpoo
+    cat <<END_OF_USAGE
+Usage: $program CMD [ OPTIONS ]
+
+Available commands
+
+    help    Prints this message
+    check   Checks Java and VS Code availability and versions
+    open    Opens one or more existing projects in VS Code
+    create  Creates one or more new dummy Java projects for VS Code
+    export  Exports one or more existing projects as .tgz archive files
+    dump    Exports the whole workspace as a .tgz archive file
+
+How to call commands in a bash terminal
+
+    $program help
+    $program check
+    $program open PROJECT_NAME ...
+    $program create PROJECT_NAME ...
+    $program export PROJECT_NAME ...
+    $program dump
+
+END_OF_USAGE
+
+    if [ $# -eq 1 ]; then
+        printf "\nError: $1\n"
+    fi
+}
+
+# Utility function to create a .tgz archive
+
+create_tgz() {
+    # select tar options according to the version at hand
+    tar_options=
+    tar_version=$(tar --version | grep -q bsdtar)
+    if [ $? -eq 0 ]; then
+        printf "Using BSD tar\n"
+        tar_options="--no-xattrs --disable-copyfile"
+    fi
+
+    # call the tar command with generic options
+    tar \
+        $tar_options \
+        --exclude '*.class' --exclude '*.tgz' \
+        -czvf \
+        $*
+}
+
+# Program's direct subcommands
+
+check() {
+    install_error=false
+    version_error=false
+
+    # Check JDK presence and version
+    if ! [ -x "$(command -v javac)" ]; then
+        printf "Error: no JDK installed\n"
+        install_error=true
+    else
+        expected=11
+        if ! [[ "$(javac --version)" == "javac $expected."* ]]; then
+            printf "Error: JDK version is not $expected\n"
+            version_error=true
+        fi
+    fi
+
+    # Check VS Code presence and installed extensions
+    if ! [ -x "$(command -v code)" ]; then
+        printf "Error: VS Code not installed\n"
+        install_error=true
+    elif [ -z "$(code --list-extensions | grep vscjava.vscode-java-pack)" ]; then
+        printf "Error: VS Code extension vscjava.vscode-java-pack not installed\n"
+        install_error=true
+    elif [ -z "$(code --list-extensions | grep sohibe.java-generate-setters-getters)" ]; then
+        printf "Error: VS Code extension sohibe.java-generate-setters-getters not installed\n"
+        install_error=true
+    fi
+
+    if [ "$install_error" = true ]; then
+        exit 10
+    elif [ "$version_error" = true ]; then
+        exit 11
+    else
+        printf "Installation seems OK. Happy Java coding!\n"
+    fi
+}
+
+create_project() {
+    project_dir=$1
+    if [ -d $project_dir ]; then
+        printf "Warning: $project_dir: directory already exists, cannot create\n"
+    else
+        cp -r Dummy $project_dir
+        rm -fr $project_dir/bin/*
+        rm -fr $project_dir/src/DummyTest.java
+        rm -fr $project_dir/*.tgz
+        printf "Created project $project_dir\n"
+    fi
+}
+
+open_project_with_code() {
+    project_dir=$1
+    if [ ! -d $project_dir ]; then
+        printf "Warning: $project_dir: no such project directory, cannot open in VS Code\n"
+    else
+        java_test_files=$(find $project_dir -name '*Test.java')
+        java_files=$(find $project_dir -name '*.java')
+        settings_json=$(find $project_dir -name 'settings.json')
+        if [ "$java_test_files" != "" ]; then
+            code --new-window $project_dir $java_test_files
+            printf "Opened Java project $project_dir\n"
+        elif [ "$java_files" != "" ]; then
+            code --new-window $project_dir $java_files
+            printf "Opened Java project $project_dir\n"
+        elif [ "$settings_json" != "" ]; then
+            printf "Warning: $project_dir: no Java file found, opening anyway\n"
+            code --new-window $project_dir
+        else
+            printf "Warning: $project_dir: not a Java project, opening anyway\n"
+            code --new-window $project_dir
+        fi
+    fi
+}
+
+export_project() {
+    project_dir=$1
+    if [ ! -d $project_dir ]; then
+        printf "Warning: $project_dir: no such directory, cannot export\n"
+    elif [ ! -d $project_dir/.vscode -o ! -d $project_dir/src ]; then
+        printf "Warning: $project_dir: not a Java project, cannot export\n"
+    else
+        name=${project_dir##*/}
+        printf "Project $name exported to $name.tgz\n"
+        create_tgz $name.tgz $name
+    fi
+}
+
+dump_workspace() {
+    # make a temporary workspace/ dir with all content
+    working_dir=$(mktemp -d)
+    mkdir -p $working_dir/workspace
+    cp -r .vscode * $working_dir/workspace
+    rm -fr $working_dir/workspace/test
+
+    # make a .tgz archive according to the version of tar at hand
+    parent_of_original_dir=$(dirname "$(pwd)")
+    cd $working_dir
+    create_tgz $parent_of_original_dir/workspace.tgz workspace
+    printf "Workspace dumped to $parent_of_original_dir/workspace.tgz\n"
+
+    # clean up
+    rm -fr $working_dir
+}
+
+# Main program
+
+if [ $# -eq 0 ]; then
+    usage "No command specified"
+    exit 1
+fi
+
+command=$1
+
+case "$command" in
+help)
+    usage
+    ;;
+check)
+    check
+    ;;
+create)
+    if [ $# -lt 2 ]; then
+        usage "No project name specified"
+        exit 2
+    fi
+    for name in "${@:2}"; do
+        create_project $name
+    done
+    ;;
+open)
+    if [ $# -lt 2 ]; then
+        usage "No project name specified"
+        exit 3
+    fi
+    for name in "${@:2}"; do
+        open_project_with_code $name
+    done
+    ;;
+export)
+    if [ $# -lt 2 ]; then
+        usage "No project name specified"
+        exit 4
+    fi
+    for name in "${@:2}"; do
+        export_project $name
+    done
+    ;;
+dump)
+    if [ $# -ne 1 ]; then
+        usage "No extra argument needed"
+        exit 5
+    fi
+    dump_workspace
+    ;;
+*)
+    usage "$command: no such CMD"
+    exit 6
+    ;;
+esac
+
+# No error, exit with success code
+exit 0
