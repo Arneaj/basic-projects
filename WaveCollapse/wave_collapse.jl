@@ -75,7 +75,7 @@ function create_tile( tiling::Array{Tile_type}, ix, iy )
 end
 
 function main()
-    dim = (256,128)
+    dim = (128,128)
     tiling = fill( empty, dim )
 
     for ix in 1:dim[1]
@@ -85,10 +85,16 @@ function main()
     end
 
     img = map( t->Tiles[Int(t)].color, tiling )
+    srf = [ Point3f( ix, iy, 0 ) for ix in 1:dim[1], iy in 1:dim[2] ]
 
     fig = Figure()
-    ax = Axis( fig[1,1], aspect=DataAspect() )
-    image!( ax, img, fxaa=false )
+    #ax = Axis( fig[1,1], aspect=DataAspect() )
+    #image!( ax, img, fxaa=false )
+
+    ax = LScene( fig[1,1], show_axis=false )
+    meshscatter!( ax, reshape(srf, (:)), color=reshape(img, (:)),
+                  marker=Rect3(Point3f(-0.5), Vec3f(1, 1, 2)), 
+                  markersize=1, shading=NoShading )
 
     display( fig )
 
