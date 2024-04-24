@@ -705,7 +705,8 @@ function real_time_water_clouds(xL::Int64=0, yL::Int64=0)
 
         clouds_obs[] = clouds_obs[] .+ Point3f( v_cloud, 0.0, 0.0 )
         
-        for k in 1:length(clouds)
+        len = length(clouds)
+        for k in 1:len
             if (clouds_obs[][k][1] > dim) clouds_obs[][k] -= Point3f( dim, 0.0, 0.0) end
             if (clouds_obs[][k][1] < 0) clouds_obs[][k] += Point3f( dim, 0.0, 0.0) end
         end

@@ -233,7 +233,7 @@ function mouse_mvmt(event)
     # y = y < 0 ? 0 : y
     # y = y > dim ? dim : y
 
-    if x == nothing || y == nothing return end
+    if x === nothing || y === nothing return end
 
     global xSun = Int64(round(x))
     global ySun = Int64(round(y))
