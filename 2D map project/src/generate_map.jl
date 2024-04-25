@@ -740,6 +740,7 @@ function real_time_water_clouds_blocky(xL::Int64=0, yL::Int64=0)
     current_xL = Observable( xL )
     current_yL = Observable( yL )
 
+    #sampler = worley_2d(seed=nothing, output=:*)
     sampler = opensimplex_2d(seed=nothing, smooth=true)
     frac = fbm_fractal_2d(seed=nothing,        # seed if you want reproductible results
                         source=sampler,        # source sampler
