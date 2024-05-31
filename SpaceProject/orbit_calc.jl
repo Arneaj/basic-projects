@@ -201,7 +201,7 @@ function plot_thing()
                       Point2f(9.57*cos($phiS), 9.57*sin($phiS)) ] )
 
     ship_pos = Point2f( cos(phiE[]) + 4.226e-4, sin(phiE[]) + 4.226e-4 )
-    ship_v = Point2f(1, 1) + 2*pi/Te * Point2f( - sin(phiE[]), cos(phiE[]) ) #1,1 #0.9,2.2
+    ship_v = Point2f(3.5, 2) + 2*pi/Te * Point2f( - sin(phiE[]), cos(phiE[]) ) #1,1 #0.9,2.2
 
     ship_points = Observable( [ ship_pos ] )
 
@@ -257,9 +257,12 @@ function plot_thing()
             t[] += dt
 
             dV = Point2f(0)
-            dV = abs(t[]-10.25) < dt ? (@show ship_v; Point2f(-0.5, 0.5)) : dV
-            dV = abs(t[]-12.2) < dt ? (@show ship_v; Point2f(-0.5, 1.2)) : dV
-            dV = abs(t[]-13.79) < dt ? (@show ship_v; Point2f(1, -1)) : dV
+            #dV = abs(t[]-10.25) < dt ? (@show ship_v; Point2f(-0.5, 0.5)) : dV
+            dV = abs(t[]-10.25) < 0.5*dt ? (@show ship_v; Point2f(-1.2, 0.6)) : dV
+            dV = abs(t[]-10.5) < 0.5*dt ? (@show ship_v; Point2f(-1.2, 0.6)) : dV
+            #dV = abs(t[]-12.2) < dt ? (@show ship_v; Point2f(-0.5, 1.2)) : dV
+            #dV = abs(t[]-13.79) < dt ? (@show ship_v; Point2f(1, -1)) : dV
+            dV = abs(t[]-12.5) < dt ? (@show ship_v; Point2f(1, -1)) : dV
             ship_pos, ship_v = next_ship_pos( planets[], ship_pos, ship_v, dV )
             push!( ship_points[], ship_pos )
             notify( ship_points )
