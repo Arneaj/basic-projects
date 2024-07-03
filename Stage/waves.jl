@@ -802,6 +802,10 @@ end
 
 ###########################################################
 
+function XI(x, L1)
+    return 0.1*4*(x/L1)*(1-x/L1)
+end
+
 function main_U_help_physiological()
 
     ############## physiological case variables
@@ -833,7 +837,7 @@ function main_U_help_physiological()
     A1 = 2e-1
     B1 = 2e-1
 
-    eps1 = 2
+    eps1 = 1
     delta1 = 1/eps1
 
     E1 = 1.8e9 * 1e-7
@@ -858,17 +862,17 @@ function main_U_help_physiological()
     #Evisc = 8e-1
     XI1 = 1e-1 #Evisc / (2*E1)
 
-    Oa(k) = Oc(k) * sqrt( 1 - XI1^2 )
+    Oa(k, x) = Oc(k) * sqrt( 1 - XI(x, L1)^2 )
 
     PHI1 = 0
 
     ################# physiological case stress
 
-    R11 = @lift( [ 10+U(A1, B1, O(3), x)*cos(Oa(3)*$t)*exp(-XI1*Oc(3)*$t) for x in X1 ] )
+    R11 = @lift( [ 10+U(A1, B1, O(3), x)*cos(Oa(3, x)*$t)*exp(-XI(x, L1)*Oc(3)*$t) for x in X1 ] )
     R21 = @lift( [ 10+U(-A1, -S1/S2 * B1, O(3), x)*cos(Oc(3)*$t) for x in X2 ] )
     R31 = @lift( [ 10+U(-A1, -eps1 * S1/S3 * B1, O(3), x)*cos(Oc(3)*$t) for x in X3 ] )
 
-    R12 = @lift( [ 10+U(A1, B1, O(4.5), x)*cos(Oa(4.5)*$t)*exp(-XI1*Oc(4.5)*$t) for x in X1 ] )
+    R12 = @lift( [ 10+U(A1, B1, O(4.5), x)*cos(Oa(4.5, x)*$t)*exp(-XI(x, L1)*Oc(4.5)*$t) for x in X1 ] )
     R22 = @lift( [ 10+U(B1, -S1/S2 * A1, O(4.5), x)*cos(Oc(4.5)*$t) for x in X2 ] )
     R32 = @lift( [ 10+U(-B1, -A1, O(4.5), x)*cos(Oc(4.5)*$t) for x in X3 ] )
 """
@@ -879,7 +883,7 @@ function main_U_help_physiological()
     R14 = @lift( [ 10+U(0, B1, O12, x)*cos(Oa12*$t)*exp(-XI1*Oc12*$t) for x in X1 ] )
     R24 = @lift( [ 10+U(0, -E1*S1*O12/(E2*S2*O21) * B1, O21, x)*cos(Oc21*$t) for x in X2 ] )
     R34 = @lift( [ 10+U(0, -eps * E1*S1*O12/(E3*S3*O32) * B1, O32, x)*cos(Oc32*$t) for x in X3 ] )
-  """  
+    """  
     ################# plot set up
 
     fig = Figure()
@@ -940,7 +944,7 @@ function main_U_help_physiological()
     band!( axes4, TH1, R01, R14; color = R14, colorrange = crange4 )
     band!( axes4, TH2, R02, R24; color = R24, colorrange = crange4 )
     band!( axes4, TH3, R03, R34; color = R34, colorrange = crange4 )
-"""
+    """
     ################### during run events
 
     display( fig )

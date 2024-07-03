@@ -19,11 +19,11 @@ function main()
         substitute(
             det(A),
             Dict([ 
-                L_1 => 6.0e-3, L_2 => 5.0e-3, L_2p => 10.0e-3, L_3 => 3.0e-3,
+                L_1 => (5.21+2.00)*1e-3, L_2 => 0.33*16.86e-3, L_2p => 0.66*16.86e-3, L_3 => 3.541e-3,
                 #L_1 => 6.0e-3, L_2 => 0, L_2p => 15.0e-3, L_3 => 3.0e-3,
                 O_1 => Omega, O_2 => Omega, O_2p => Omega, O_3 => Omega,
-                E_1 => 2.25e9, E_2 => 2.25e9, E_2p => 2.25e9, E_3 => 2.25e9,
-                S_1 => 1.1e-6, S_2 => 0.1e-6, S_2p => 0.1e-6, S_3 => 0.7e-6,
+                E_1 => 2.0e3, E_2 => 2.0e3, E_2p => 2.0e3, E_3 => 2.0e3,
+                S_1 => 1.40e-6, S_2 => 0.11e-6, S_2p => 0.11e-6, S_3 => 0.52e-6,
                 #delta => 2, epsilon => 0.5, eta => etaa, mu => muu
             ])
         )
@@ -39,21 +39,21 @@ function main()
 
     ZEROSSS = Array{Vector{Int}}( undef, (length(ETA), length(MU)) )
 
-    OOmega = 0.000001:1:4000
+    OOmega = 0.000001:1:14000
 
     for etaa_i in 1:length(ETA), muu_i in 1:length(MU)
 
         etaa = ETA[etaa_i]
         muu = MU[muu_i]
 
-        if !isfile( "zeros/eta$(ETA[etaa_i])_mu$(MU[muu_i]).txt" )
+        if !isfile( "zeros_bis/eta$(ETA[etaa_i])_mu$(MU[muu_i]).txt" )
             find_zeros(d_eta_mu)
         end
 
-        ZEROSSS[etaa_i, muu_i] = readdlm( "zeros/eta$(ETA[etaa_i])_mu$(MU[muu_i]).txt" )[:,1]
+        ZEROSSS[etaa_i, muu_i] = readdlm( "zeros_bis/eta$(ETA[etaa_i])_mu$(MU[muu_i]).txt" )[:,1]
 
-        if isfile( "data/eta$(etaa)_mu$(muu).txt" )
-            HEHEHE[etaa_i, muu_i] = readdlm( "data/eta$(etaa)_mu$(muu).txt" )[:,1]
+        if isfile( "data_bis/eta$(etaa)_mu$(muu).txt" )
+            HEHEHE[etaa_i, muu_i] = readdlm( "data_bis/eta$(etaa)_mu$(muu).txt" )[:,1]
             continue
         end
 
@@ -79,7 +79,7 @@ function main()
 
         HEHEHE[etaa_i, muu_i] = HEHE
 
-        writedlm( "data/eta$(etaa)_mu$(muu).txt", HEHE )
+        writedlm( "data_bis/eta$(etaa)_mu$(muu).txt", HEHE )
     end
 
     etaa_i = Observable( length(ETA) )
@@ -156,11 +156,11 @@ function find_zeros(d_eta_mu)
 
     for etaa in ETA, muu in MU
 
-        if !isfile( "data/eta$(etaa)_mu$(muu).txt" ) || isfile( "zeros/eta$(etaa)_mu$(muu).txt" )
+        if !isfile( "data_bis/eta$(etaa)_mu$(muu).txt" ) || isfile( "zeros_bis/eta$(etaa)_mu$(muu).txt" )
             continue
         end
 
-        HEHE = readdlm( "data/eta$(etaa)_mu$(muu).txt" )[:,1]
+        HEHE = readdlm( "data_bis/eta$(etaa)_mu$(muu).txt" )[:,1]
 
         zeros::Vector{Int32} = [0,0]
         for i in 2:length(HEHE)
@@ -169,7 +169,7 @@ function find_zeros(d_eta_mu)
             end
         end
 
-        writedlm( "zeros/eta$(etaa)_mu$(muu).txt", zeros )
+        writedlm( "zeros_bis/eta$(etaa)_mu$(muu).txt", zeros )
     end
 end
 
@@ -199,7 +199,7 @@ function plot_zeros()
     ZEROS = Array{Vector{Float64}}( undef, (length(ETA), length(MU)) )
 
     for etaa_i in 1:length(ETA), muu_i in 1:length(MU)
-        ZEROS[etaa_i, muu_i] = readdlm( "zeros/eta$(ETA[etaa_i])_mu$(MU[muu_i]).txt", Int32 )[:,1]
+        ZEROS[etaa_i, muu_i] = readdlm( "zeros_bis/eta$(ETA[etaa_i])_mu$(MU[muu_i]).txt", Int32 )[:,1]
     end
 
     fig = Figure()
