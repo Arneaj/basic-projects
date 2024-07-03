@@ -51,7 +51,7 @@ function main()
         muu = MU[muu_i]
 
         #if !isfile( "zeros/eta$(ETA[etaa_i])_mu$(MU[muu_i]).txt" )
-            find_zeros()
+        #    find_zeros()
         #end
 
         #ZEROSSS[etaa_i, muu_i] = readdlm( "zeros/eta$(ETA[etaa_i])_mu$(MU[muu_i]).txt", Int32 )
@@ -156,8 +156,7 @@ function main()
     return
 end
 
-function find_zeros()
-    d_eta_mu = 0.05
+function find_zeros(d_eta_mu)
 
     ETA = -1:d_eta_mu:1
 
@@ -198,7 +197,9 @@ function rolling_avg(M, range)
 end
 
 function plot_zeros()
-    d_eta_mu = 0.1
+    d_eta_mu = 0.05
+
+    find_zeros(d_eta_mu)
 
     ETA = -1:d_eta_mu:1
     MU = -1:d_eta_mu:1
