@@ -29,7 +29,7 @@ function main()
         )
     )
 
-    d_eta_mu = 0.1
+    d_eta_mu = 0.05
 
     ETA = -1:d_eta_mu:1
     #push!( ETA, -1:d_eta_mu:-d_eta_mu... )
@@ -41,12 +41,20 @@ function main()
 
     HEHEHE = Array{Vector{Float64}}( undef, (length(ETA), length(MU)) )
 
+    #ZEROSSS = Array{Matrix{Int32}}( undef, (length(ETA), length(MU)) )
+
     OOmega = 0.000001:1:4000
 
     for etaa_i in 1:length(ETA), muu_i in 1:length(MU)
 
         etaa = ETA[etaa_i]
         muu = MU[muu_i]
+
+        #if !isfile( "zeros/eta$(ETA[etaa_i])_mu$(MU[muu_i]).txt" )
+            find_zeros()
+        #end
+
+        #ZEROSSS[etaa_i, muu_i] = readdlm( "zeros/eta$(ETA[etaa_i])_mu$(MU[muu_i]).txt", Int32 )
 
         if isfile( "data/eta$(etaa)_mu$(muu).txt" )
             HEHEHE[etaa_i, muu_i] = readdlm( "data/eta$(etaa)_mu$(muu).txt" )[:,1]
@@ -115,7 +123,7 @@ function main()
         DET = lines!( ax, OOmega, log.(abs.(HEHEHE[etaa_i, muu_i])), color=:black )
     end
 
-    ylims!( ax, 0, 80 )
+    ylims!( ax, 30, 65 )
 
     LL = [ 6.0e-3, 5.0e-3, 10.0e-3, 3e-3 ]
 
@@ -148,5 +156,87 @@ function main()
     return
 end
 
+function find_zeros()
+    d_eta_mu = 0.05
 
-main()
+    ETA = -1:d_eta_mu:1
+
+    MU = -1:d_eta_mu:1
+
+    for etaa in ETA, muu in MU
+
+        if !isfile( "data/eta$(etaa)_mu$(muu).txt" ) || isfile( "zeros/eta$(etaa)_mu$(muu).txt" )
+            continue
+        end
+
+        HEHE = readdlm( "data/eta$(etaa)_mu$(muu).txt" )[:,1]
+
+        zeros = [0,0]
+        for i in 2:length(HEHE)
+            if sign(HEHE[i]) != sign(HEHE[i-1])
+                push!( zeros, i-2 )
+            end
+        end
+
+        writedlm( "zeros/eta$(etaa)_mu$(muu).txt", zeros )
+    end
+end
+
+function rolling_avg(M, range)
+    Mp = copy(M)
+
+    for k in 1:size(M)[2]
+        for i in 1+range:size(M)[1]-range
+            for j in -range:range
+                if j == 0 continue end
+                Mp[i,k] += M[i+j,k] / abs(j)
+            end
+        end
+    end
+
+    return Mp
+end
+
+function plot_zeros()
+    d_eta_mu = 0.1
+
+    ETA = -1:d_eta_mu:1
+    MU = -1:d_eta_mu:1
+
+    ZEROS = Array{Vector{Float64}}( undef, (length(ETA), length(MU)) )
+
+    for etaa_i in 1:length(ETA), muu_i in 1:length(MU)
+        ZEROS[etaa_i, muu_i] = readdlm( "zeros/eta$(ETA[etaa_i])_mu$(MU[muu_i]).txt", Int32 )[:,1]
+    end
+
+    fig = Figure()
+    ax = Axis( fig[1:4,1], aspect = AxisAspect(5), height=800 )
+
+    Label( fig[0,2], L"\mu" )
+    sl_mu = Slider( fig[1:4, 2], range = MU, startvalue = 1, horizontal = false )
+
+    on( sl_mu.value ) do val
+        muu_i[] = findall( x->x==val, MU )[1]
+    end
+
+    muu_i = Observable( length(MU) )
+
+    zerr = @lift( ZEROS[:, $muu_i] )
+
+    map = @lift( [
+        (omega in $(zerr)[eta_i]) ? 1.0 : 0.0
+        for omega in 1:4000, eta_i in 1:length(ETA)
+    ] )
+
+    map = @lift( rolling_avg( $map, 100 ) )
+
+    #map = @lift( $map' )
+
+    image!( ax, 1..4000, -1..1, map )
+
+    display(fig)
+
+    return
+end
+
+
