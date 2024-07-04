@@ -86,7 +86,9 @@ function main()
     muu_i = Observable( length(MU) )
 
     fig = Figure()
-    ax = Axis( fig[1:4,1], aspect = AxisAspect(2), height=800, title=@lift( "Natural Pulses : " * string( ZEROSSS[$etaa_i, $muu_i][2:end-1] ) ), titlealign=:left )
+    ax = Axis( fig[1:4,1], aspect = AxisAspect(2), height=800, 
+                title=@lift( "First 10 Natural Pulses : " * string( ZEROSSS[$etaa_i, $muu_i][2:min(end-1, 12)] ) ), titlealign=:left,
+                subtitle=@lift( "Total Number of Natural Pulses : $(length(ZEROSSS[$etaa_i, $muu_i][2:end-1]))" ) )
 
     toggles = [ Toggle( fig ) for i in 1:4 ]
     labels = [ L"1", L"2", L"2'", L"3" ]
@@ -107,6 +109,9 @@ function main()
 
     DET = lines!( ax, OOmega, @lift( log.(abs.(HEHEHE[$etaa_i, $muu_i])) ), color=:black )
 
+    vspan!( ax, [35], [10607], color = :green, alpha = 0.05 )
+    text!( ax, [300], [12], text="Frequency heard in everyday life.", color=:green, alpha = 0.5 )
+
     on( sl_eta.value ) do val
         etaa_i[] = findall( x->x==val, ETA )[1]
     end
@@ -115,7 +120,7 @@ function main()
         muu_i[] = findall( x->x==val, MU )[1]
     end
 
-    ylims!( ax, 30, 65 )
+    ylims!( ax, -20, 15 )
 
     LL = [ 6.0e-3, 5.0e-3, 10.0e-3, 3e-3 ]
 
@@ -218,16 +223,16 @@ function plot_zeros()
 
     map = @lift( [
         (omega in $(zerr)[eta_i]) ? 1.0 : 0.0
-        for omega in 1:4000, eta_i in 1:length(ETA)
+        for omega in 1:14000, eta_i in 1:length(ETA)
     ] )
 
     map = @lift( rolling_avg( $map, 100 ) )
 
     #map = @lift( $map' )
 
-    image!( ax, 1..4000, -1..1, map )
+    image!( ax, 1..14000, -1..1, map )
 
-    lines!( ax, [1,4000], [0,0], color=:red )
+    lines!( ax, [1,14000], [0,0], color=:red )
 
     display(fig)
 
