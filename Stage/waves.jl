@@ -810,9 +810,9 @@ function main_U_help_physiological()
 
     ############## physiological case variables
 
-    L1 = 6e-3
-    L2 = 15e-3 #11.9e-3
-    L3 = 3e-3
+    L1 = 8e-3 #7.2e-3
+    L2 = 16e-3 #16.86e-3 
+    L3 = 4e-3 #3.54e-3
 
     L = L1 + L2 + L3
 
@@ -829,31 +829,28 @@ function main_U_help_physiological()
     R03 = [ 10 for _ in 0:0.001*L3:L3 ]
 
     t = Observable(0.0)
-    dt = 0.003
+    dt = 0.001
     time_dilation = Observable(1.0)
 
     ################ physiological case constants
 
-    A1 = 2e-1
-    B1 = 2e-1
+    A1 = 1
+    B1 = 0.2
 
-    eps1 = 1
+    eps1 = 2
     delta1 = 1/eps1
 
-    E1 = 1.8e9 * 1e-7
-    S1 = 1.1e-6
+    E1 = 2e3
+    S1 = 1.4e-6
     RHO1 = 1e3
 
-    E2 = 1.8e9
-    S2 = 1.0e-7
+    E2 = 2e3
+    S2 = 1.1e-7
     RHO2 = 1e3
 
-    E3 = 1.8e9
-    S3 = 7e-7
+    E3 = 2e3
+    S3 = 5.2e-7
     RHO3 = 1e3
-
-    delta2 = -1
-    eps2 = 1/delta2
 
     O(k) = k*pi/L1
 
@@ -868,35 +865,30 @@ function main_U_help_physiological()
 
     ################# physiological case stress
 
-    R11 = @lift( [ 10+U(A1, B1, O(3), x)*cos(Oa(3, x)*$t)*exp(-XI(x, L1)*Oc(3)*$t) for x in X1 ] )
-    R21 = @lift( [ 10+U(-A1, -S1/S2 * B1, O(3), x)*cos(Oc(3)*$t) for x in X2 ] )
-    R31 = @lift( [ 10+U(-A1, -eps1 * S1/S3 * B1, O(3), x)*cos(Oc(3)*$t) for x in X3 ] )
+    R11 = @lift( [ 10+U(A1, B1, O(4), x)*cos(Oa(4, x)*$t)*exp(-XI(x, L1)*Oc(4)*$t) for x in X1 ] )
+    #R11 = @lift( [ 10+U(A1, B1, O(4), x)*cos(Oc(4)*$t) for x in X1 ] )
+    R21 = @lift( [ 10+U(A1, S1/S2 * B1, O(4), x)*cos(Oc(4)*$t) for x in X2 ] )
+    R31 = @lift( [ 10+U(A1, eps1 * S1/S3 * B1, O(4), x)*cos(Oc(4)*$t) for x in X3 ] )
 
-    R12 = @lift( [ 10+U(A1, B1, O(4.5), x)*cos(Oa(4.5, x)*$t)*exp(-XI(x, L1)*Oc(4.5)*$t) for x in X1 ] )
-    R22 = @lift( [ 10+U(B1, -S1/S2 * A1, O(4.5), x)*cos(Oc(4.5)*$t) for x in X2 ] )
-    R32 = @lift( [ 10+U(-B1, -A1, O(4.5), x)*cos(Oc(4.5)*$t) for x in X3 ] )
-"""
-    R13 = @lift( [ 10+U(0, B1, O11, x)*cos(Oa11*$t)*exp(-XI1*Oc11*$t) for x in X1 ] )
-    R23 = @lift( [ 10+U(0, +E1*S1*O11/(E2*S2*O22) * B1, O22, x)*cos(Oc22*$t) for x in X2 ] )
-    R33 = @lift( [ 10+U(0, -eps * E1*S1*O11/(E3*S3*O32) * B1, O32, x)*cos(Oc32*$t) for x in X3 ] )
+    B3 = -A1
+    B2 = delta1 * S3/S2 * B3
+    B1a = - S2/S1 * B2
 
-    R14 = @lift( [ 10+U(0, B1, O12, x)*cos(Oa12*$t)*exp(-XI1*Oc12*$t) for x in X1 ] )
-    R24 = @lift( [ 10+U(0, -E1*S1*O12/(E2*S2*O21) * B1, O21, x)*cos(Oc21*$t) for x in X2 ] )
-    R34 = @lift( [ 10+U(0, -eps * E1*S1*O12/(E3*S3*O32) * B1, O32, x)*cos(Oc32*$t) for x in X3 ] )
-    """  
+    R12 = @lift( [ 10+U(A1, B1a, O(3), x)*cos(Oa(3, x)*$t)*exp(-XI(x, L1)*Oc(3)*$t) for x in X1 ] )    
+    #R12 = @lift( [ 10+U(A1, B1, O(4.5), x)*cos(Oc(4.5)*$t) for x in X1 ] )
+    R22 = @lift( [ 10+U(-A1, B2, O(3), x)*cos(Oc(3)*$t) for x in X2 ] )
+    R32 = @lift( [ 10+U(-A1, B3, O(3), x)*cos(Oc(3)*$t) for x in X3 ] )
+ 
+    
     ################# plot set up
 
     fig = Figure()
     
-    axes1 = PolarAxis( fig[1,1], rminorgridvisible = false, thetaminorgridvisible = false, rgridwidth = 0, thetagridwidth = 0, rticklabelsize = 0, thetaticklabelsize = 0, width = 400, height = 400 )
-    axes2 = PolarAxis( fig[1,2], rminorgridvisible = false, thetaminorgridvisible = false, rgridwidth = 0, thetagridwidth = 0, rticklabelsize = 0, thetaticklabelsize = 0, width = 400, height = 400 )
-    axes3 = PolarAxis( fig[2,1], rminorgridvisible = false, thetaminorgridvisible = false, rgridwidth = 0, thetagridwidth = 0, rticklabelsize = 0, thetaticklabelsize = 0, width = 400, height = 400 )
-    axes4 = PolarAxis( fig[2,2], rminorgridvisible = false, thetaminorgridvisible = false, rgridwidth = 0, thetagridwidth = 0, rticklabelsize = 0, thetaticklabelsize = 0, width = 400, height = 400 )
+    axes1 = PolarAxis( fig[1,1], rminorgridvisible = false, thetaminorgridvisible = false, rgridwidth = 0, thetagridwidth = 0, rticklabelsize = 0, thetaticklabelsize = 0, width = 600, height = 600 )
+    axes2 = PolarAxis( fig[1,2], rminorgridvisible = false, thetaminorgridvisible = false, rgridwidth = 0, thetagridwidth = 0, rticklabelsize = 0, thetaticklabelsize = 0, width = 600, height = 600 )
 
     rlims!( axes1, 0.0, 15 )
     rlims!( axes2, 0.0, 15 )
-    rlims!( axes3, 0.0, 15 )
-    rlims!( axes4, 0.0, 15 )
 
     lines!( axes1, TH1, R01 )
     lines!( axes1, TH2, R02 )
@@ -906,17 +898,9 @@ function main_U_help_physiological()
     lines!( axes2, TH2, R02 )
     lines!( axes2, TH3, R03 )
 
-    lines!( axes3, TH1, R01 )
-    lines!( axes3, TH2, R02 )
-    lines!( axes3, TH3, R03 )
-
-    lines!( axes4, TH1, R01 )
-    lines!( axes4, TH2, R02 )
-    lines!( axes4, TH3, R03 )
-
     Label( fig[0, 1:2], L"\text{Physiological Model Case}", fontsize = 20 )
 
-    box1 = Box(fig[1:2, 1:2], color = :white, cornerradius = 10, strokewidth = 0.5, width = 830, height = 830 )
+    box1 = Box(fig[1, 1:2], color = :white, cornerradius = 10, strokewidth = 0.5, width = 1230, height = 630 )
     translate!(box1.blockscene, 0, 0, -100)
 
     ################## disc case plotting
@@ -932,19 +916,8 @@ function main_U_help_physiological()
     band!( axes2, TH1, R01, R12; color = R12, colorrange = crange2 )
     band!( axes2, TH2, R02, R22; color = R22, colorrange = crange2 )
     band!( axes2, TH3, R03, R32; color = R32, colorrange = crange2 )
-"""
-    crange3 = minimum(R13[]), maximum(R13[])
-    
-    band!( axes3, TH1, R01, R13; color = R13, colorrange = crange3 )
-    band!( axes3, TH2, R02, R23; color = R23, colorrange = crange3 )
-    band!( axes3, TH3, R03, R33; color = R33, colorrange = crange3 )
 
-    crange4 = minimum(R14[]), maximum(R14[])
     
-    band!( axes4, TH1, R01, R14; color = R14, colorrange = crange4 )
-    band!( axes4, TH2, R02, R24; color = R24, colorrange = crange4 )
-    band!( axes4, TH3, R03, R34; color = R34, colorrange = crange4 )
-    """
     ################### during run events
 
     display( fig )
@@ -983,6 +956,7 @@ function main_U_help_physiological()
     end
 
     return
+
 end
 
 function main_U_help_pathological()
@@ -1234,3 +1208,4 @@ end
 main_U_help_physiological()
 
 return
+
