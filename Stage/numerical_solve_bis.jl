@@ -29,11 +29,11 @@ function main()
         )
     )
 
-    d_eta_mu = 0.5
+    d_eta_mu = 0.02
 
     ETA = -1:d_eta_mu:1
 
-    MU = -1:d_eta_mu:1
+    MU = [1.0] #-0.1:d_eta_mu:0.1
 
     HEHEHE = Array{Vector{Float64}}( undef, (length(ETA), length(MU)) )
 
@@ -46,11 +46,11 @@ function main()
         etaa = ETA[etaa_i]
         muu = MU[muu_i]
 
-        """if !isfile( "zeros_bis_bis/eta$(ETA[etaa_i])_mu$(MU[muu_i]).txt" )
+        if !isfile( "zeros_bis_bis/eta$(ETA[etaa_i])_mu$(MU[muu_i]).txt" )
             find_zeros(d_eta_mu)
         end
 
-        ZEROSSS[etaa_i, muu_i] = readdlm( "zeros_bis_bis/eta$(ETA[etaa_i])_mu$(MU[muu_i]).txt" )[:,1]"""
+        ZEROSSS[etaa_i, muu_i] = readdlm( "zeros_bis_bis/eta$(ETA[etaa_i])_mu$(MU[muu_i]).txt" )[:,1]
 
         if isfile( "data_bis_bis/eta$(etaa)_mu$(muu).txt" )
             HEHEHE[etaa_i, muu_i] = readdlm( "data_bis_bis/eta$(etaa)_mu$(muu).txt" )[:,1]
@@ -86,9 +86,12 @@ function main()
     muu_i = Observable( length(MU) )
 
     fig = Figure()
-    ax = Axis( fig[1:4,1], aspect = AxisAspect(2), height=800, 
-                title=@lift( "First 10 Natural Pulses : " * string( ZEROSSS[$etaa_i, $muu_i][2:min(end-1, 12)] ) ), titlealign=:left,
-                subtitle=@lift( "Total Number of Natural Pulses : $(length(ZEROSSS[$etaa_i, $muu_i][2:end-1]))" ) )
+
+    ax = Axis( 
+        fig[1:4,1], aspect = AxisAspect(2), height=800, 
+        title=@lift( "First 10 Natural Pulses : " * string( ZEROSSS[$etaa_i, $muu_i][2:min(end-1, 12)] ) ), titlealign=:left,
+        subtitle=@lift( "Total Number of Natural Pulses : $(length(ZEROSSS[$etaa_i, $muu_i][2:end-1]))" ) 
+    )
 
     toggles = [ Toggle( fig ) for i in 1:4 ]
     labels = [ L"1", L"2", L"2'", L"3" ]
@@ -98,12 +101,12 @@ function main()
     fig[1:4, 3] = toggles
 
     Label( fig[0,4], L"\eta" )
-    sl_eta = Slider( fig[1:4, 4], range = ETA, startvalue = 1, horizontal = false )
+    sl_eta = Slider( fig[1:4, 4], range = ETA, startvalue = maximum(ETA), horizontal = false )
     Box( fig[5,4], color=:white, strokevisible=false, cornerradius = 20, width = 40 )
     Label( fig[5,4], @lift("$(ETA[$etaa_i])") )
 
     Label( fig[0,5], L"\mu" )
-    sl_mu = Slider( fig[1:4, 5], range = MU, startvalue = 1, horizontal = false )
+    sl_mu = Slider( fig[1:4, 5], range = MU, startvalue = maximum(MU), horizontal = false )
     Box( fig[5,5], color=:white, strokevisible=false, cornerradius = 20, width = 40 )
     Label( fig[5,5], @lift("$(MU[$muu_i])") )
 
@@ -157,7 +160,7 @@ function find_zeros(d_eta_mu)
 
     ETA = -1:d_eta_mu:1
 
-    MU = -1:d_eta_mu:1
+    MU = [1.0] #-1:d_eta_mu:1
 
     for etaa in ETA, muu in MU
 
@@ -194,12 +197,12 @@ function rolling_avg(M, range)
 end
 
 function plot_zeros()
-    d_eta_mu = 0.05
+    d_eta_mu = 0.02
 
     find_zeros(d_eta_mu)
 
     ETA = -1:d_eta_mu:1
-    MU = -1:d_eta_mu:1
+    MU = [1.0] #-0.1:d_eta_mu:0.1
 
     ZEROS = Array{Vector{Float64}}( undef, (length(ETA), length(MU)) )
 
