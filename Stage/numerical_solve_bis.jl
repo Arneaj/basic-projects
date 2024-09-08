@@ -31,9 +31,9 @@ function main()
 
     d_eta_mu = 0.02
 
-    ETA = -1:d_eta_mu:1
+    ETA = -0.1:d_eta_mu:0.1
 
-    MU = [1.0] #-0.1:d_eta_mu:0.1
+    MU = -0.1:d_eta_mu:0.1 # [1.0] #
 
     HEHEHE = Array{Vector{Float64}}( undef, (length(ETA), length(MU)) )
 
@@ -41,10 +41,19 @@ function main()
 
     OOmega = 0.000001:1:14000
 
+    BASE_HEHEHE = readdlm( "data_bis_bis/eta0.0_mu0.0.txt" )[:,1]
+
     for etaa_i in 1:length(ETA), muu_i in 1:length(MU)
+
+        is_defined = false
 
         etaa = ETA[etaa_i]
         muu = MU[muu_i]
+
+        if isfile( "data_bis_bis/eta$(etaa)_mu$(muu).txt" )
+            HEHEHE[etaa_i, muu_i] = readdlm( "data_bis_bis/eta$(etaa)_mu$(muu).txt" )[:,1]
+            is_defined = true
+        end
 
         if !isfile( "zeros_bis_bis/eta$(ETA[etaa_i])_mu$(MU[muu_i]).txt" )
             find_zeros(d_eta_mu)
@@ -52,9 +61,8 @@ function main()
 
         ZEROSSS[etaa_i, muu_i] = readdlm( "zeros_bis_bis/eta$(ETA[etaa_i])_mu$(MU[muu_i]).txt" )[:,1]
 
-        if isfile( "data_bis_bis/eta$(etaa)_mu$(muu).txt" )
-            HEHEHE[etaa_i, muu_i] = readdlm( "data_bis_bis/eta$(etaa)_mu$(muu).txt" )[:,1]
-            continue
+        if is_defined 
+            continue 
         end
 
         hehe = simplify(
@@ -82,6 +90,9 @@ function main()
         writedlm( "data_bis_bis/eta$(etaa)_mu$(muu).txt", HEHE )
     end
 
+    ZEROSSS *= sqrt(2) / (2*pi)
+    OOmega *= sqrt(2) / (2*pi)
+
     etaa_i = Observable( length(ETA) )
     muu_i = Observable( length(MU) )
 
@@ -89,31 +100,36 @@ function main()
 
     ax = Axis( 
         fig[1:4,1], aspect = AxisAspect(2), height=800, 
-        title=@lift( "First 10 Natural Pulses : " * string( ZEROSSS[$etaa_i, $muu_i][2:min(end-1, 12)] ) ), titlealign=:left,
-        subtitle=@lift( "Total Number of Natural Pulses : $(length(ZEROSSS[$etaa_i, $muu_i][2:end-1]))" ) 
+        title=@lift(  "First 10 Natural Frequencies : " * string( round.(ZEROSSS[$etaa_i, $muu_i][2:min(end-1, 12)], digits=1 ) ) ), titlealign=:left,
+        subtitle=@lift( "Total Number of Natural Frequencies : " * string( length(ZEROSSS[$etaa_i, $muu_i][2:end-1]) ) ),
+        #subtitlefont = "Latin Modern",
+        subtitlesize = 23,
+        #titlefont = "Latin Modern",
+        titlesize = 25,
+        xlabel = L"f \, (Hz)",
+        xlabelsize = 20,
+        ylabel = L" \log( \left| \det( M_{\eta = 0, \mu = 0} ) \right| ) - \log( \left| \det( M ) \right| ) ",
+        ylabelsize = 20
     )
 
-    toggles = [ Toggle( fig ) for i in 1:4 ]
+    """toggles = [ Toggle( fig ) for i in 1:4 ]
     labels = [ L"1", L"2", L"2'", L"3" ]
 
     [ Label( fig[i,2], labels[i] ) for i in 1:4 ]
     
-    fig[1:4, 3] = toggles
+    fig[1:4, 3] = toggles"""
 
-    Label( fig[0,4], L"\eta" )
-    sl_eta = Slider( fig[1:4, 4], range = ETA, startvalue = maximum(ETA), horizontal = false )
-    Box( fig[5,4], color=:white, strokevisible=false, cornerradius = 20, width = 40 )
-    Label( fig[5,4], @lift("$(ETA[$etaa_i])") )
+    Label( fig[0,2], L"\eta" )
+    sl_eta = Slider( fig[1:4, 2], range = ETA, startvalue = maximum(ETA), horizontal = false )
+    Box( fig[5,2], color=:white, strokevisible=false, cornerradius = 20, width = 40 )
+    Label( fig[5,2], @lift("$(ETA[$etaa_i])") )
 
-    Label( fig[0,5], L"\mu" )
-    sl_mu = Slider( fig[1:4, 5], range = MU, startvalue = maximum(MU), horizontal = false )
-    Box( fig[5,5], color=:white, strokevisible=false, cornerradius = 20, width = 40 )
-    Label( fig[5,5], @lift("$(MU[$muu_i])") )
+    Label( fig[0,3], L"\mu" )
+    sl_mu = Slider( fig[1:4, 3], range = MU, startvalue = maximum(MU), horizontal = false )
+    Box( fig[5,3], color=:white, strokevisible=false, cornerradius = 20, width = 40 )
+    Label( fig[5,3], @lift("$(MU[$muu_i])") )
 
-    DET = lines!( ax, OOmega, @lift( log.(abs.(HEHEHE[$etaa_i, $muu_i])) ), color=:black )
-
-    vspan!( ax, [35], [10607], color = :green, alpha = 0.05 )
-    text!( ax, [300], [12], text="Frequency heard in everyday life.", color=:green, alpha = 0.5 )
+    DET = lines!( ax, OOmega, @lift( log.(abs.(BASE_HEHEHE)) .- log.(abs.(HEHEHE[$etaa_i, $muu_i])) .- minimum(log.(abs.(BASE_HEHEHE)) .- log.(abs.(HEHEHE[$etaa_i, $muu_i]))) ), color=:black )
 
     on( sl_eta.value ) do val
         etaa_i[] = findall( x->x==val, ETA )[1]
@@ -123,11 +139,11 @@ function main()
         muu_i[] = findall( x->x==val, MU )[1]
     end
 
-    ylims!( ax, -20, 15 )
+    ylims!( ax, -2.5, 12.5 )
 
     LL = [ 6.0e-3, 5.0e-3, 10.0e-3, 3e-3 ]
 
-    linesss = [[], [], [], []]
+    """linesss = [[], [], [], []]
 
     [
         [ 
@@ -149,7 +165,7 @@ function main()
             for line in linesss[i]
         ]
         for i in 1:4
-    ]
+    ]"""
 
     display(fig)
 
@@ -158,9 +174,9 @@ end
 
 function find_zeros(d_eta_mu)
 
-    ETA = -1:d_eta_mu:1
+    ETA = -1.0:d_eta_mu:15.0
 
-    MU = [1.0] #-1:d_eta_mu:1
+    MU = [1.0] #-1.0:d_eta_mu:1.0
 
     for etaa in ETA, muu in MU
 
@@ -197,12 +213,12 @@ function rolling_avg(M, range)
 end
 
 function plot_zeros()
-    d_eta_mu = 0.02
+    d_eta_mu = 0.1
 
     find_zeros(d_eta_mu)
 
-    ETA = -1:d_eta_mu:1
-    MU = [1.0] #-0.1:d_eta_mu:0.1
+    ETA = -1.0:d_eta_mu:1.0
+    MU = -1.0:d_eta_mu:1.0 # [1.0] #
 
     ZEROS = Array{Vector{Float64}}( undef, (length(ETA), length(MU)) )
 

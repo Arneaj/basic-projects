@@ -63,7 +63,7 @@ k_pi = 1; k_pi_05 = 2;
 
 # ╔═╡ 4e8930b1-2356-491b-ab78-8537befd97eb
 HUHU = simplify(
-	Us[k_pi, k_pi, k_pi, k_pi],
+	Us[k_pi, k_pi, k_pi, k_pi_05],
 	expand=true
 );
 
@@ -71,6 +71,8 @@ HUHU = simplify(
 latexify( HUHU*[A_1, B_1, A_2, B_2, A_2p, B_2p, A_3, B_3] )
 
 # ╔═╡ 8f0750fb-5bcd-4df0-8bca-8d2bb79bb7f5
+# ╠═╡ disabled = true
+#=╠═╡
 UUUU = simplify(
 	substitute(
 		U,
@@ -82,11 +84,17 @@ UUUU = simplify(
 	),
 	expand=true
 );
+  ╠═╡ =#
 
 # ╔═╡ 1e2581fb-391e-4750-ada0-106d39573964
+# ╠═╡ disabled = true
+#=╠═╡
 latexify( UUUU*[A_1, B_1, A_2, B_2, A_2p, B_2p, A_3, B_3] )
+  ╠═╡ =#
 
 # ╔═╡ 0fb393fe-3caa-4e3d-8adb-0c2a47e68cd5
+# ╠═╡ disabled = true
+#=╠═╡
 """UUUUU = simplify(
 	substitute(
 		U,
@@ -101,6 +109,7 @@ latexify( UUUU*[A_1, B_1, A_2, B_2, A_2p, B_2p, A_3, B_3] )
 	),
 	simplify_fractions=false
 ); hehe = UUUUU[8,8]""";
+  ╠═╡ =#
 
 # ╔═╡ fb72d3d2-1df0-4909-bfdb-787f633c64d5
 hehe = simplify(
@@ -118,15 +127,24 @@ hehe = simplify(
 )
 
 # ╔═╡ 408d31af-3102-4ef6-92fa-fc96f4f66113
+# ╠═╡ disabled = true
+#=╠═╡
 OOmega = 0.01:0.2:5000;
+  ╠═╡ =#
 
 # ╔═╡ 832e993f-5381-4f14-be13-043f8716d37f
+# ╠═╡ disabled = true
+#=╠═╡
 function blbl(Omeg::Float64)::Float64
 	return Symbolics.unwrap( substitute( hehe, Dict([Omega=>Omeg]) ) )
 end;
+  ╠═╡ =#
 
 # ╔═╡ b9c2eddb-6169-4470-b352-5fa3d95bf168
+# ╠═╡ disabled = true
+#=╠═╡
 HEHE::Vector{Float64} = [ blbl(Omeg) for Omeg in OOmega ]
+  ╠═╡ =#
 
 # ╔═╡ 7877ad76-edc8-476b-8fd4-a7de5e43d066
 # ╠═╡ disabled = true
@@ -145,6 +163,8 @@ end
   ╠═╡ =#
 
 # ╔═╡ 2811b1c7-6eca-46c7-8187-de55ab12c617
+# ╠═╡ disabled = true
+#=╠═╡
 begin
 	fig = Figure()
 	ax = Axis( fig[1:4,1], aspect = AxisAspect(2), height=800 )
@@ -188,6 +208,7 @@ begin
 
 	display(fig)
 end;
+  ╠═╡ =#
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """

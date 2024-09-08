@@ -898,6 +898,14 @@ function main_U_help_physiological()
     lines!( axes2, TH2, R02 )
     lines!( axes2, TH3, R03 )
 
+    lines!( axes1, [TH1[1], TH1[1]], [10, 15], color = :black, alpha = 0.3 )
+    lines!( axes1, [TH2[1], TH2[1]], [10, 15], color = :black, alpha = 0.3 )
+    lines!( axes1, [TH3[1], TH3[1]], [10, 15], color = :black, alpha = 0.3 )
+
+    lines!( axes2, [TH1[1], TH1[1]], [10, 15], color = :black, alpha = 0.3 )
+    lines!( axes2, [TH2[1], TH2[1]], [10, 15], color = :black, alpha = 0.3 )
+    lines!( axes2, [TH3[1], TH3[1]], [10, 15], color = :black, alpha = 0.3 )
+
     Label( fig[0, 1:2], L"\text{Physiological Model Case}", fontsize = 20 )
 
     box1 = Box(fig[1, 1:2], color = :white, cornerradius = 10, strokewidth = 0.5, width = 1230, height = 630 )
@@ -960,212 +968,162 @@ function main_U_help_physiological()
 end
 
 function main_U_help_pathological()
+    
+    ############## physiological case variables
 
-    ############## modes
+    L1 = 8e-3 #7.2e-3
+    L2 = 8e-3 #16.86e-3 
+    L2p = 8e-3
+    L3 = 4e-3 #3.54e-3
 
-    k = 1
-    l = 1
-    m = 1
-    n = 1
-
-    ############## pathological case variables
-
-    L1 = 6.0e-3
-    L2 = 11.9e-3 * 0.5
-    L4 = 11.9e-3 * 0.5
-    L3 = 2.0e-3
-
-    L = L1 + L2 + L4 + L3
+    L = L1 + L2 + L2p + L3
 
     X1 = 0:0.001*L1:L1
     X2 = 0:0.001*L2:L2
-    X4 = 0:0.001*L4:L4
+    X2p = 0:0.001*L2p:L2p
     X3 = 0:0.001*L3:L3
 
     TH1 = X1*2*pi/L .- 4*pi/5
     TH2 = (X2 .+ L1)*2*pi/L .- 4*pi/5
-    TH4 = (X4 .+ L1 .+ L2)*2*pi/L .- 4*pi/5
-    TH3 = (X3 .+ L1 .+ L2 .+ L4)*2*pi/L .- 4*pi/5
+    TH2p = (X2p .+ L2 .+ L1)*2*pi/L .- 4*pi/5
+    TH3 = (X3 .+ L2p .+ L2 .+ L1)*2*pi/L .- 4*pi/5
 
     R01 = [ 10 for _ in 0:0.001*L1:L1 ]
     R02 = [ 10 for _ in 0:0.001*L2:L2 ]
-    R04 = [ 10 for _ in 0:0.001*L4:L4 ]
+    R02p = [ 10 for _ in 0:0.001*L2p:L2p ]
     R03 = [ 10 for _ in 0:0.001*L3:L3 ]
 
-    time_dilation = Observable(1.0)
     t = Observable(0.0)
-    dt = @lift( 0.03/$time_dilation )
+    dt = 0.001
+    time_dilation = Observable(1.0)
 
-    ################ pathological case constants
+    ################ physiological case constants
 
-    B1 = 3
+    eps1 = 2
+    delta1 = 0.5
+    mu1 = -1
+    eta1 = mu1/(eps1*delta1)
 
-    eps = 2
-    eta = -1
-    mu = -1
-    #delta defined in the actual stress calculation
+    eps2 = 2
+    delta2 = 0.5
+    eta2 = -0.5
+    mu2 = -1/(eps2*delta2*eta2)
 
-    E1 = 4
-    S1 = 1.2e-6
-    RHO1 = 8e2
+    E1 = 2e3
+    S1 = 1.4e-6
+    RHO1 = 1e3
 
-    E2 = 1.8e9 * 1e-7
-    S2 = 1e-7
-    RHO2 = 8e2
+    E2 = 2e3
+    S2 = 1.1e-7
+    RHO2 = 1e3
 
-    E4 = 1.8e9 * 1e-7
-    S4 = 1e-7
-    RHO4 = 8e2
+    E2p = 2e3
+    S2p = 1.1e-7
+    RHO2p = 1e3
 
-    E3 = 1.8e9 * 1e-8
-    S3 = 9e-7
-    RHO3 = 8e2
+    E3 = 2e3
+    S3 = 5.2e-7
+    RHO3 = 1e3
 
-    O11 = (2*k)*pi/L1
-    O21 = (2*l)*pi/L2
-    O41 = (2*n)*pi/L4
-    O31 = (2*m)*pi/L3
+    O(k) = k*pi/L1
 
-    O12 = (2*k+1)*pi/L1
-    O22 = (2*l+1)*pi/L2
-    O42 = (2*n+1)*pi/L4
-    O32 = (2*m+1)*pi/L3
-
-    O13 = (2*k)*pi/L1
-    O23 = (2*l+1/2)*pi/L2
-    O43 = (2*n+1/2)*pi/L4
-    O33 = (2*m)*pi/L3
-
-    O14 = (2*k+1)*pi/L1
-    O24 = (2*l+1+1/2)*pi/L2
-    O44 = (2*n+1+1/2)*pi/L4
-    O34 = (2*m+1)*pi/L3
-
-    Oc11 = O11 * sqrt(E1/RHO1)
-    Oc21 = O21 * sqrt(E2/RHO2)
-    Oc41 = O41 * sqrt(E4/RHO4)
-    Oc31 = O31 * sqrt(E3/RHO3)
-
-    Oc12 = O12 * sqrt(E1/RHO1)
-    Oc22 = O22 * sqrt(E2/RHO2)
-    Oc42 = O42 * sqrt(E4/RHO4)
-    Oc32 = O32 * sqrt(E3/RHO3)
-
-    Oc13 = O13 * sqrt(E1/RHO1)
-    Oc23 = O23 * sqrt(E2/RHO2)
-    Oc43 = O43 * sqrt(E4/RHO4)
-    Oc33 = O33 * sqrt(E3/RHO3)
-
-    Oc14 = O14 * sqrt(E1/RHO1)
-    Oc24 = O24 * sqrt(E2/RHO2)
-    Oc44 = O44 * sqrt(E4/RHO4)
-    Oc34 = O34 * sqrt(E3/RHO3)
+    Oc(k) = O(k) * sqrt(E1/RHO1)
 
     #Evisc = 8e-1
     XI1 = 1e-1 #Evisc / (2*E1)
 
-    Oa11 = Oc11 * sqrt( 1 - XI1^2 )
-    Oa12 = Oc12 * sqrt( 1 - XI1^2 )
-
-    Oa13 = Oc13 * sqrt( 1 - XI1^2 )
-    Oa14 = Oc14 * sqrt( 1 - XI1^2 )
+    Oa(k, x) = Oc(k) * sqrt( 1 - XI(x, L1)^2 )
 
     PHI1 = 0
 
-    ################# pathological case stress
+    ################# physiological case stress
 
-    R11 = @lift( [ 10+U(0, B1, O11, x)*cos(Oa11*$t)*exp(-XI1*Oc11*$t) for x in X1 ] )
-    R21 = @lift( [ 10+U(0, +E1*S1*O11/(E2*S2*O21) * B1, O21, x)*cos(Oc21*$t) for x in X2 ] )
-    R41 = @lift( [ 10+U(0, -sign(eta)/eta * E1*S1*O11/(E4*S4*O42) * B1, O42, x)*cos(Oc42*$t) for x in X4 ] )
-    R31 = @lift( [ 10+U(0, +eps * E1*S1*O11/(E3*S3*O31) * B1, O31, x)*cos(Oc31*$t) for x in X3 ] )
+    A3 = 1
+    B3 = 1
 
-    R12 = @lift( [ 10+U(0, B1, O12, x)*cos(Oa12*$t)*exp(-XI1*Oc12*$t) for x in X1 ] )
-    R22 = @lift( [ 10+U(0, -E1*S1*O12/(E2*S2*O21) * B1, O21, x)*cos(Oc21*$t) for x in X2 ] )
-    R42 = @lift( [ 10+U(0, +sign(eta)/eta * E1*S1*O12/(E4*S4*O42) * B1, O42, x)*cos(Oc42*$t) for x in X4 ] )
-    R32 = @lift( [ 10+U(0, -eps * E1*S1*O12/(E3*S3*O32) * B1, O32, x)*cos(Oc32*$t) for x in X3 ] )
+    A11 = -A3
+    A21 = A11
+    A2p1 = A21 / mu1
+    B11 = -S3/S1 * B3 / eps1
+    B21 = S1/S2 * B11
+    B2p1 = S2/S2p * B21 / eta1
+
+    R11 = @lift( [ 10+U(A11, B11, O(2), x)*cos(Oa(2, x)*$t)*exp(-XI(x, L1)*Oc(2)*$t) for x in X1 ] )
+    #R11 = @lift( [ 10+U(A1, B1, O(4), x)*cos(Oc(4)*$t) for x in X1 ] )
+    R21 = @lift( [ 10+U(A21, B21, O(2), x)*cos(Oc(2)*$t) for x in X2 ] )
+    R2p1 = @lift( [ 10+U(A2p1, B2p1, O(2), x)*cos(Oc(2)*$t) for x in X2p ] )
+    R31 = @lift( [ 10+U(A3, B3, O(2), x)*cos(Oc(2)*$t) for x in X3 ] )
 
     ###
 
-    R13 = @lift( [ 10+U(0, B1, O13, x)*cos(Oa13*$t)*exp(-XI1*Oc13*$t) for x in X1 ] )
-    R23 = @lift( [ 10+U(0, +E1*S1*O13/(E2*S2*O24) * B1, O24, x)*cos(Oc24*$t) for x in X2 ] )
-    R43 = @lift( [ 10+U(+sign(mu)/mu * E1*S1*O13/(E2*S2*O24) * B1, 0, O44, x)*cos(Oc44*$t) for x in X4 ] )
-    R33 = @lift( [ 10+U(0, +eps * E1*S1*O13/(E3*S3*O33) * B1, O33, x)*cos(Oc33*$t) for x in X3 ] )
+    A12 = -B3
+    A22 = -A12
+    A2p2 = -A22 / mu2
+    A32 = -A2p2
+    B12 = S3/S1 * A32/eps2
+    B22 = -S1/S2 * B12
+    B2p2 = -S2/S2p * B22/eta2
 
-    R14 = @lift( [ 10+U(0, B1, O14, x)*cos(Oa14*$t)*exp(-XI1*Oc14*$t) for x in X1 ] )
-    R24 = @lift( [ 10+U(0, -E1*S1*O14/(E2*S2*O23) * B1, O23, x)*cos(Oc23*$t) for x in X2 ] )
-    R44 = @lift( [ 10+U(+sign(mu)/mu * E1*S1*O14/(E2*S2*O23) * B1, 0, O43, x)*cos(Oc43*$t) for x in X4 ] )
-    R34 = @lift( [ 10+U(0, -eps * E1*S1*O14/(E3*S3*O34) * B1, O34, x)*cos(Oc34*$t) for x in X3 ] )
+    R12 = @lift( [ 10+U(A12, B12, O(3), x)*cos(Oa(3, x)*$t)*exp(-XI(x, L1)*Oc(3)*$t) for x in X1 ] )
+    #R11 = @lift( [ 10+U(A1, B1, O(4), x)*cos(Oc(4)*$t) for x in X1 ] )
+    R22 = @lift( [ 10+U(A22, B22, O(3), x)*cos(Oc(3)*$t) for x in X2 ] )
+    R2p2 = @lift( [ 10+U(A2p2, B2p2, O(3), x)*cos(Oc(3)*$t) for x in X2p ] )
+    R32 = @lift( [ 10+U(A32, B3, O(3), x)*cos(Oc(3)*$t) for x in X3 ] )
+ 
     
     ################# plot set up
 
     fig = Figure()
     
-    axes1 = PolarAxis( fig[1,1], rminorgridvisible = false, thetaminorgridvisible = false, rgridwidth = 0, thetagridwidth = 0, rticklabelsize = 0, thetaticklabelsize = 0, width = 400, height = 400 )
-    axes2 = PolarAxis( fig[1,2], rminorgridvisible = false, thetaminorgridvisible = false, rgridwidth = 0, thetagridwidth = 0, rticklabelsize = 0, thetaticklabelsize = 0, width = 400, height = 400 )
-    axes3 = PolarAxis( fig[2,1], rminorgridvisible = false, thetaminorgridvisible = false, rgridwidth = 0, thetagridwidth = 0, rticklabelsize = 0, thetaticklabelsize = 0, width = 400, height = 400 )
-    axes4 = PolarAxis( fig[2,2], rminorgridvisible = false, thetaminorgridvisible = false, rgridwidth = 0, thetagridwidth = 0, rticklabelsize = 0, thetaticklabelsize = 0, width = 400, height = 400 )
+    axes1 = PolarAxis( fig[1,1], rminorgridvisible = false, thetaminorgridvisible = false, rgridwidth = 0, thetagridwidth = 0, rticklabelsize = 0, thetaticklabelsize = 0, width = 600, height = 600 )
+    axes2 = PolarAxis( fig[1,2], rminorgridvisible = false, thetaminorgridvisible = false, rgridwidth = 0, thetagridwidth = 0, rticklabelsize = 0, thetaticklabelsize = 0, width = 600, height = 600 )
 
     rlims!( axes1, 0.0, 15 )
     rlims!( axes2, 0.0, 15 )
-    rlims!( axes3, 0.0, 15 )
-    rlims!( axes4, 0.0, 15 )
 
     lines!( axes1, TH1, R01 )
     lines!( axes1, TH2, R02 )
+    lines!( axes1, TH2p, R02p )
     lines!( axes1, TH3, R03 )
-    lines!( axes1, TH4, R04 )
 
     lines!( axes2, TH1, R01 )
     lines!( axes2, TH2, R02 )
+    lines!( axes2, TH2p, R02p )
     lines!( axes2, TH3, R03 )
-    lines!( axes2, TH4, R04 )
 
-    lines!( axes3, TH1, R01 )
-    lines!( axes3, TH2, R02 )
-    lines!( axes3, TH3, R03 )
-    lines!( axes3, TH4, R04 )
+    lines!( axes1, [TH1[1], TH1[1]], [10, 15], color = :black, alpha = 0.3 )
+    lines!( axes1, [TH2[1], TH2[1]], [10, 15], color = :black, alpha = 0.3 )
+    lines!( axes1, [TH2p[1], TH2p[1]], [10, 15], color = :black, alpha = 0.3 )
+    lines!( axes1, [TH3[1], TH3[1]], [10, 15], color = :black, alpha = 0.3 )
 
-    lines!( axes4, TH1, R01 )
-    lines!( axes4, TH2, R02 )
-    lines!( axes4, TH3, R03 )
-    lines!( axes4, TH4, R04 )
+    lines!( axes2, [TH1[1], TH1[1]], [10, 15], color = :black, alpha = 0.3 )
+    lines!( axes2, [TH2[1], TH2[1]], [10, 15], color = :black, alpha = 0.3 )
+    lines!( axes2, [TH2p[1], TH2p[1]], [10, 15], color = :black, alpha = 0.3 )
+    lines!( axes2, [TH3[1], TH3[1]], [10, 15], color = :black, alpha = 0.3 )
 
     Label( fig[0, 1:2], L"\text{Pathological Model Case}", fontsize = 20 )
 
-    box1 = Box(fig[1:2, 1:2], color = :white, cornerradius = 10, strokewidth = 0.5, width = 830, height = 830 )
+    box1 = Box(fig[1, 1:2], color = :white, cornerradius = 10, strokewidth = 0.5, width = 1230, height = 630 )
+    
     translate!(box1.blockscene, 0, 0, -100)
 
-    ################## pathological case plotting
+    ################## disc case plotting
 
-    crange1 = minimum(R11[]), maximum(R11[])
+    crange1 = minimum(R21[]), maximum(R21[])
     
     band!( axes1, TH1, R01, R11; color = R11, colorrange = crange1 )
     band!( axes1, TH2, R02, R21; color = R21, colorrange = crange1 )
+    band!( axes1, TH2p, R02p, R2p1; color = R2p1, colorrange = crange1 )
     band!( axes1, TH3, R03, R31; color = R31, colorrange = crange1 )
-    band!( axes1, TH4, R04, R41; color = R41, colorrange = crange1 )
 
-    crange2 = minimum(R12[]), maximum(R12[])
+    crange2 = minimum(R22[]), maximum(R22[])
     
     band!( axes2, TH1, R01, R12; color = R12, colorrange = crange2 )
     band!( axes2, TH2, R02, R22; color = R22, colorrange = crange2 )
+    band!( axes2, TH2p, R02p, R2p2; color = R2p2, colorrange = crange2 )
     band!( axes2, TH3, R03, R32; color = R32, colorrange = crange2 )
-    band!( axes2, TH4, R04, R42; color = R42, colorrange = crange2 )
 
-    crange3 = minimum(R13[]), maximum(R13[])
-    
-    band!( axes3, TH1, R01, R13; color = R13, colorrange = crange3 )
-    band!( axes3, TH2, R02, R23; color = R23, colorrange = crange3 )
-    band!( axes3, TH3, R03, R33; color = R33, colorrange = crange3 )
-    band!( axes3, TH4, R04, R43; color = R43, colorrange = crange3 )
-
-    crange4 = minimum(R14[]), maximum(R14[])
-    
-    band!( axes4, TH1, R01, R14; color = R14, colorrange = crange4 )
-    band!( axes4, TH2, R02, R24; color = R24, colorrange = crange4 )
-    band!( axes4, TH3, R03, R34; color = R34, colorrange = crange4 )
-    band!( axes4, TH4, R04, R44; color = R44, colorrange = crange4 )
-
-    ################### run-time events
+    ################### during run events
 
     display( fig )
 
@@ -1196,10 +1154,10 @@ function main_U_help_pathological()
     end
 
     while events(fig.scene).window_open[]
-        if !is_paused t[] += dt[] end
+        if !is_paused t[] += dt/time_dilation[] end
 
         notify(t)
-        sleep(time_dilation[]*dt[])
+        sleep(time_dilation[]*dt)
     end
 
     return
