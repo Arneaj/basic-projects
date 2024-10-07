@@ -35,6 +35,18 @@ bool is_empty_LL( int_LL LL ) {
     return LL.length == 0;
 }
 
+void free_LL( int_LL LL ) {
+    int_cell* p_cell = LL.first_cell;
+    
+    while ( p_cell->next_cell != nullptr ) {
+        p_cell = p_cell->next_cell;
+        delete p_cell->previous_cell;
+
+    }
+    
+    delete LL.last_cell ;
+}
+
 // manipulation functions
 
 int head_LL( int_LL LL ) {
@@ -52,7 +64,7 @@ int_LL tail_LL( int_LL LL ) {
     new_LL.last_cell = LL.last_cell;
     new_LL.length = LL.length - 1;
 
-    // add free cell part
+    delete LL.first_cell;
 
     return new_LL;
 }
@@ -69,13 +81,6 @@ int_LL add_to_beg_LL( int new_value, int_LL LL ) {
 
         new_LL.length = LL.length + 1;
 
-        /*
-        cout << new_LL.first_cell->value << "\n";
-        cout << new_LL.first_cell->next_cell << "\n";
-        cout << new_LL.first_cell->previous_cell << "\n";
-        cout << new_LL.length << "\n";
-        */
-
         return new_LL;
     }
 
@@ -87,6 +92,7 @@ int_LL add_to_beg_LL( int new_value, int_LL LL ) {
     new_LL.length = LL.length + 1;
 
     // add free LL part
+    //free_LL( LL );
 
     return new_LL;
 }
@@ -103,13 +109,6 @@ int_LL add_to_end_LL( int new_value, int_LL LL ) {
 
         new_LL.length = LL.length + 1;
 
-        /*
-        cout << new_LL.first_cell->value << "\n";
-        cout << new_LL.first_cell->next_cell << "\n";
-        cout << new_LL.first_cell->previous_cell << "\n";
-        cout << new_LL.length << "\n";
-        */
-
         return new_LL;
     }
 
@@ -121,6 +120,7 @@ int_LL add_to_end_LL( int new_value, int_LL LL ) {
     new_LL.length = LL.length + 1;
 
     // add free LL part
+    //free_LL( LL );
 
     return new_LL;
 }
@@ -146,7 +146,7 @@ int_LL remove_LL( int index, int_LL LL ) {
         new_LL.last_cell = LL.last_cell->previous_cell;
         new_LL.length = LL.length - 1;
 
-        // add free cell part
+        delete LL.last_cell;
 
         return new_LL;
     }
@@ -168,7 +168,7 @@ int_LL remove_LL( int index, int_LL LL ) {
     new_LL.last_cell = LL.last_cell;
     new_LL.length = LL.length - 1;
 
-    // add free cell part
+    delete p_current_cell;
 
     return new_LL;
 }

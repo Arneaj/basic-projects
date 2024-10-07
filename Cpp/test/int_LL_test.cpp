@@ -52,5 +52,7 @@ int main() {
     print_backwards_LL( LL );
     cout << "\n";
 
+    free_LL( LL );
+
     return 0;
 }
