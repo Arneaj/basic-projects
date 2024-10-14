@@ -1,0 +1,26 @@
+#include <iostream> // for cin and cout
+#include <cmath> // for math functions
+using namespace std; // standard names for functions
+
+int fahrenheit_to_celsius( temp ) {
+  return ( temp - 32.0 ) * 5.0 / 9.0;
+}
+
+int main() {
+  
+  int[] fahrenheit_temps;
+  float[] celsius_temps;
+  float[] kelvin_temps;
+
+  for (int i = 0; 20*i <= 300; i++) {
+    fahrenheit_temp[i] = 20*i;
+    celsius_temp[i] = fahrenheit_to_celsius( 20*i );
+    kelvin_temp[i] = fahrenheit_to_celsius( 20*i ) + 273.15;
+  }
+
+  cout << "Fahrenheit \tCelsius \tKelvin \n";
+  
+  return 0;
+}
+
+
