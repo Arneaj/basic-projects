@@ -2,33 +2,44 @@
 #include"inf_precision.h"
 using namespace std;
 
-class inf_precision_number {
+class inf_float {
     public:
-        int length;
-        int floating_point_pos;
+        uint length;
+        
+        int e_exp;
 
-        u_int8_t* digit_pairs;
+        uint8_t* digit_pairs;
 
-        inf_precision_number( int len, int fpp ) {
+        inf_float( uint len, int exp ) {
             length = len;
-            floating_point_pos = fpp;
+            e_exp = exp;
 
-            digit_pairs = new u_int8_t[length / 2 + 1];
-
-            for (int i = 0; i < length / 2 + 1; i++) {
-                digit_pairs[i] = 0;
-            }
+            digit_pairs = new uint8_t[length]();
         }
 
-        void set_digits( u_int8_t d_pairs[] ) {
-            for (int i = 0; i < length / 2 + 1; i++) {
-                digit_pairs[i] = d_pairs[i];
+        void print() {
+            cout << digit_pairs[0] << ".";
+            for (int i = 1; i < length / 2; i++) {
+                cout << digit_pairs[i];
             }
+            cout << endl;
         }
 
-        inf_precision_number add( inf_precision_number other_nb ) {
-            inf_precision_number new_nb( max( length, other_nb.length ), floating_point_pos );
+        inf_float add( inf_float other_nb ) {
+            int exp = max( e_exp, other_nb.e_exp );
 
-            
+            int len = 1;
+
+            inf_float new_nb( exp, len );
+
+            bool even = length % 2 == 0;
+
+            for (int i = length / 2 - 1 + even; i >= 0; i--) {
+
+            }
+
+            return new_nb;
         }
 };
+
+
